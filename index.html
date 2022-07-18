@@ -1,0 +1,96 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html
+        body {
+            background-color: #081030;
+            overflow: hidden;
+        }
+        #center {
+            position: absolute;
+            left: 50%;
+            top: 70%;
+            transform: translate(-50%, -50%) 
+        }
+        #gif {
+            position: absolute;
+            left: 50%;
+            top: 40%;
+            transform: translate(-50%, -50%) 
+        }
+        #fps {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) 
+        }
+        
+    </style>
+</head>
+<body>
+    <div id="center">
+        <input type="number" step="5" min="5" max="60" id="guess" style="width: 100px; font-size: 30; height: 40px;">
+        <button onclick="refresh();" style="height: 40px; position: relative; top: -5;">Submit</button>
+    </div>
+
+</body>
+
+<script>
+    let fps;
+    let numCorrect = 0;
+    let numTotal = 1;
+    function toBase64(arr) {
+        arr = new Uint8Array(arr) 
+        return arr.reduce((data, byte) => data + String.fromCharCode(byte), '')
+
+    }
+
+    fetch('/newgif')
+    .then(response => response.json())
+    .then(data => {
+
+        fps = data.fps;
+        let gifElement = document.createElement("img");
+        let gifData = btoa(new Uint8Array(data.gif.data).reduce(function (data, byte) {
+    return data + String.fromCharCode(byte);
+}, ''));
+        gifElement.src = "data:image/png;base64," + gifData;
+        gifElement.id = "gif";
+        document.body.appendChild(gifElement);
+        let fpsElement = document.createElement("p");
+        fpsElement.id = "fps";
+        fpsElement.innerText = "0/0";
+        fpsElement.style.color = "white";
+        fpsElement.style.fontSize = "50"
+        document.body.appendChild(fpsElement);
+    });
+
+    function refresh() {
+        if (document.getElementById("guess").value == fps) {
+            numCorrect += 1;
+        }
+        document.getElementById("guess").value = ""
+        numTotal += 1;
+        console.log(numCorrect);
+
+
+
+        fetch('/newgif')
+    .then(response => response.json())
+    .then(data => {
+
+        fps = data.fps;
+        let gifData = btoa(new Uint8Array(data.gif.data).reduce(function (data, byte) {
+    return data + String.fromCharCode(byte);
+}, ''));
+        document.getElementById("gif").src = "data:image/png;base64," + gifData;
+        document.getElementById("fps").innerText = (numCorrect + "/" + (numTotal - 1));
+    });
+    }
+
+</script>
+</html>
